@@ -14,15 +14,15 @@ docker-compose -f ./docker/docker-compose.yml --env-file ./docker/.env build
 ```
 
 это та тот случай если возникнет ошибка по типу - 
->[!info]
+
 >```bash
-Добрый день!
+>Добрый день!
 >
-При билде проекта docker-compose выдавал ошибку
+>При билде проекта docker-compose выдавал ошибку
 >
 `ERROR: The Compose file '././docker/docker-compose.yml' is invalid because: services.postgres.ports contains an invalid type, it should be a number, or an object services.nginx.ports contains an invalid type, it should be a number, or an object`
 
-Проблема была решена с помощью аргумента --env-file:
+>Проблема была решена с помощью аргумента --env-file:
 
 ```
 `docker-compose -f ./docker/docker-compose.yml --env-file ./docker/.env build`
@@ -170,7 +170,7 @@ dashboard:
 Для соединения с сервером ДЕ :
 
 ---
->[!info]
+
 >имя сущности `GetToken`
 >поля -
 >
@@ -180,7 +180,7 @@ dashboard:
 
 
 ---
->[!info]
+
 >имя сущности `GetData`
 >поля -
 >
@@ -193,10 +193,10 @@ dashboard:
 ---
 
 **Для позиционирование кабинета :**
->[!info]
+
 >Поля для позиционирования кабинета и выдачи контента в зависимости от данных указанных в `venID` ,`mac`
 
->[!info]
+
 >имя сущности `virtualRoom`
 >поля -
 >
@@ -227,7 +227,7 @@ dashboard:
 >
 >`turnONin` - включить клиента (указываем время)
 
->[!warning]
+
 >`turnOFFin` - выключить клиента (указываем время)
 >`turnONin` - включить клиента (указываем время)
 >
@@ -237,7 +237,7 @@ dashboard:
 
 
 
->[!info]
+
 >Пример приходящих данных от ДЕ:
 >```json
 >{
