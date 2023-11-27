@@ -9,15 +9,14 @@ Web Kiosk Server Manager
 
 подымаем - 
 
-```bash
+```
 docker-compose -f ./docker/docker-compose.yml --env-file ./docker/.env build
 ```
 
 это та тот случай если возникнет ошибка по типу - 
 
->```bash
+
 >Добрый день!
->
 >При билде проекта docker-compose выдавал ошибку
 >
 `ERROR: The Compose file '././docker/docker-compose.yml' is invalid because: services.postgres.ports contains an invalid type, it should be a number, or an object services.nginx.ports contains an invalid type, it should be a number, or an object`
@@ -32,18 +31,16 @@ docker-compose -f ./docker/docker-compose.yml --env-file ./docker/.env build
 
 ----
 2. и так с учётом ошибки  собираем контейнеры 
-```bash
-```bash
-docker-compose -f ./docker/docker-compose.yml --env-file ./docker/.env build
 
+```
+docker-compose -f ./docker/docker-compose.yml --env-file ./docker/.env build
 ```
 
 а теперь их подымаем - 
 
-```bash
 
-```bash
-docker-compose -f ./docker/docker-compose.yml --env-file ./docker/.env up
+
+`docker-compose -f ./docker/docker-compose.yml --env-file ./docker/.env up`
 
 
 ## Установка Symfony 
@@ -61,7 +58,7 @@ docker-compose -f ./docker/docker-compose.yml --env-file ./docker/.env up
 Если что это все находится там не далеко гдей  и терминал...
 
 и так , залазим в контейнер - и ставим symfony 
-```bash
+```
 composer create-project symfony/skeleton:"6.2.*" my_project_directory
 ```
 
@@ -87,7 +84,7 @@ $ composer require api admin
 
 ## Создание контроллера для главной страницы
 
-```bash
+```
 $ php bin/console make:controller
 
 Choose a name for your controller class (e.g. BravePizzaController):
@@ -97,11 +94,11 @@ created: src/Controller/HomeController.php
 created: templates/home/index.html.twig
 ```
 
-```bash
+```
 $ nano src/Controller/HomeController.php
 ```
 
-```php
+```
 # src/Controller/HomeController.php
 
 # меняем роут
@@ -119,11 +116,11 @@ php bin/console make:admin:dashboard
 Дальше создадим первую таблицу -
 
 создадим пользователя -
-```bash
+```
 php bin/console make:user
 
 ```
-```bash
+```
  The name of the security user class (e.g. User) [User]:
  > User
 
@@ -161,8 +158,8 @@ symfony console make:admin:crud
 dashboard:
     path: /admin
     controller: App\Controller\Admin\DashboardController::index
-
-# ...
+```
+ 
 
 
 ## Создадим сущности 
@@ -173,7 +170,7 @@ dashboard:
 
 >имя сущности `GetToken`
 >поля -
->
+
 `serverDe `
 `login`
 `password`
@@ -183,7 +180,7 @@ dashboard:
 
 >имя сущности `GetData`
 >поля -
->
+
 `authorizationServer `
 `login`
 `password` 
@@ -199,59 +196,43 @@ dashboard:
 
 >имя сущности `virtualRoom`
 >поля -
->
->
->`venID` - является уникальным для каждого кабинета.
->
->`mac` - выполняется привязка к виртуальному кабинету.
->
->`status` -`string`  статус  `online` / `offline`
->
->`client address` - `ip` адрес клиента (подтягуется автоматически или указуется принудительно)
->
->`dataRoom` - данные которые выданы данному кабинету.
->
->`video` - контент который нужно выдавать клиенту в случай отсутствия доктора  в кабинете.
->
->`userDesc` - `bool` (выводим инфу, описание врача или нет) 
->
->`userName` - `bool` (выводим или нет ФИО)"Дука Володимир Анатолійович" 
->
->`userPhoto` - `bool` (выводим фото врача или нет)
->
->`userSpeciality` - bool (выводить или нет специализацию врача)
->
+
+`venID` - является уникальным для каждого кабинета.
+`mac` - выполняется привязка к виртуальному кабинету.
+`status` -`string`  статус  `online` / `offline`
+`client address` - `ip` адрес клиента (подтягуется автоматически или указуется принудительно)
+`dataRoom` - данные которые выданы данному кабинету.
+`video` - контент который нужно выдавать клиенту в случай отсутствия доктора  в кабинете.
+`userDesc` - `bool` (выводим инфу, описание врача или нет) 
+`userName` - `bool` (выводим или нет ФИО)"Дука Володимир Анатолійович" 
+`userPhoto` - `bool` (выводим фото врача или нет)
+`userSpeciality` - bool (выводить или нет специализацию врача)
 `venueName` - `bool` (выводить или нет номер кабинета )
->
->`turnOFFin` - выключить клиента (указываем время)
->
->`turnONin` - включить клиента (указываем время)
+`turnOFFin` - выключить клиента (указываем время)
+`turnONin` - включить клиента (указываем время)
+`turnOFFin` - выключить клиента (указываем время)
+`turnONin` - включить клиента (указываем время)
 
-
->`turnOFFin` - выключить клиента (указываем время)
->`turnONin` - включить клиента (указываем время)
->
 >Данная функция будет зависеть от клиента и от поддержки клиентом функции `rtcwake –m`. 
->
 >Допускается управление клиентскими машинами средствами `Ansible Semaphore`
 
 
 
 
 >Пример приходящих данных от ДЕ:
->```json
->{
->scheduleStatus: "В процесі"
->userDesc: ""
->userLogin: "v.duka"
->userName: "Дука Володимир Анатолійович"
->userPhoto: "http://10.34.13.254/MediaCache/UserPhoto/UserPhotov.duka.jpg"
->userSpeciality: ""
->venueID: 15
->venueName: "Перев'язувальна 114"
->}
->
->```
+```
+{
+	scheduleStatus: "В процесі"
+	userDesc: ""
+	userLogin: "v.duka"
+	userName: "Дука Володимир Анатолійович"
+	userPhoto: "http://10.34.13.254/MediaCache/UserPhoto/UserPhotov.duka.jpg"
+	userSpeciality: ""
+	venueID: 15
+	venueName: "Перев'язувальна 114"
+}
+
+```
 
 
 ```
@@ -310,59 +291,55 @@ Do you want to generate a '/logout' URL? (yes/no) [yes]:
 [пример](https://www.youtube.com/watch?v=M-ehiNixBvM&list=PLqhuffi3fiMOA4dBrBHAhfNGlxfA9MCJh&ab_channel=OverSeasMedia)
 тайм код 2.00
 
->[!warning]
+
 >Ознакомится с данной командой !!!
 >Обновляем внесеные изменения в бд(но это не точно)
->
->```php
->php bin/console doctrine:schema:update --force
->```
+
+```
+php bin/console doctrine:schema:update --force
+```
 >[пример](https://www.youtube.com/watch?v=M-ehiNixBvM&list=PLqhuffi3fiMOA4dBrBHAhfNGlxfA9MCJh&ab_channel=OverSeasMedia)
 тайм код 2.00
 
 ---
 
 
-
->[!Warning]
->Обнаружен момент с правами доступа к файлам на изменение.
+> Обнаружен момент с правами доступа к файлам на изменение.
 >`security.yaml symfony clean readonly status`
 >
 >**Лекарство**
 >`sudo chown -R $(whoami) config/packages/security.yaml
 `
 
->[!info]
 >Поверхносно * [глянуть](https://symfony.com.ua/doc/current/security.html)
 
-Для получения пароля для админа , генерируем его следующей командой -
+>Для получения пароля для админа , генерируем его следующей командой -
 
 ```
 php bin/console security:encode-password
 
 ```
 
->[!info]
 >ввел пароль `10242048`
 >в ответ увидите что-то похожее -
-> ---
+ ---
   `Key             Value `  
-  >                                                         
- >---
- >
+                                                          
+ ---
+ 
   `Hasher used     Symfony\Component\PasswordHasher\Hasher\MigratingPasswordHasher`
-  >  
+   
  `Password hash`    `$2y$13$8QsF6kQDKNy/MV/NuD6IIO6kE1u3BZFIoxivjn8Jmm/Log.POOtqy`   
-  >  
- >--- 
- >
+   
+ --- 
+ 
 
 
 Копируем сгенереный код , и добавляем в БД.
 
 Должно получится что-то типа такого -
 
-```sql
+```
 symfony.public> INSERT INTO public."user" (id, email, roles, password) VALUES (1, 'kukarowwwww@gmail.com', '["ROLE_USER"]', '$2y$13$8QsF6kQDKNy/MV/NuD6IIO6kE1u3BZFIoxivjn8Jmm/Log.POOtqy')
 [2023-08-16 17:19:47] 1 row affected in 10 ms
 symfony.public> SELECT t.*
@@ -424,9 +401,7 @@ access_control:
 ## Админ панель
 
 
-```php
-
-
+```
 namespace App\Controller\Admin;  
 use App\Entity\GetToken;  
 use App\Entity\GetData;  
@@ -475,7 +450,7 @@ php bin/console make:admin:crud
 ```
 Укажем с какой хотим сущностью будем работать -
 
-```
+```bash
 bash-5.1# php bin/console make:admin:crud
 
  Which Doctrine entity are you going to manage with this CRUD controller?:
@@ -492,8 +467,6 @@ bash-5.1# php bin/console make:admin:crud
 и быстренько подключаем новый контроллер
 
 ```php
-<?php  
-  
 namespace App\Controller\Admin;  
 use App\Entity\GetToken;  
 use App\Entity\GetData;  
@@ -592,8 +565,6 @@ class GetTokenCrudController extends AbstractCrudController
 **Кастумизируем `GetDataCrudController` **
 
 ```php
-<?php  
-  
 namespace App\Controller\Admin;  
   
 use App\Entity\GetData;  
@@ -698,14 +669,14 @@ class VirtualRoomCrudController extends AbstractCrudController
   
 }
 ```
->[!warning]
+
 >Обратить внимание на какой-то там косяк , php ругается на 
->`use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;`
->
+`use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;`
+
 При использовании `TimeField`  и`DataTimeField`  -ругается .
->
->Добавлено в  `php-fpm/Dockerfilee`
-```
+
+Добавлено в  `php-fpm/Dockerfilee`
+```bash
 # Install intl extension  
 RUN apk add --no-cache \  
     icu-dev \  
@@ -715,9 +686,9 @@ RUN apk add --no-cache \
   
 RUN apk add --update linux-headers
 ```
->[!tip]
->>[Конфиг тянул для правки c github](https://gist.github.com/evansims/280d63378c9f422f7b5d72e6d16f3806)
->>Все равно ругается . `php intl`
+
+>[Конфиг тянул для правки c github](https://gist.github.com/evansims/280d63378c9f422f7b5d72e6d16f3806)
+>Все равно ругается . `php intl`
 
 ---
 
@@ -744,7 +715,6 @@ TimeField::new('turnONin','Час вимкнення клієнта')->hideOnInd
 [вариант 5.](https://www.youtube.com/@developpeur.muscle/videos)
 [вариант 6.  глянуть желательно](https://www.youtube.com/watch?v=4dmsUalc5Ds&ab_channel=YoanDev)
 
->[!tip]
 >По иконкам - гугл -> `fa fa home` и в итоге линки на [https://fontawesome.com/](https://fontawesome.com/icons/house?f=classic&s=solid)
 
 
@@ -757,7 +727,7 @@ TimeField::new('turnONin','Час вимкнення клієнта')->hideOnInd
 `docBusy` - доктор занят (картинка)
 `wait` -  подождите (картинка)
 
-````
+````bash
 $ php bin/console make:entity
 ````
 
@@ -833,10 +803,10 @@ bash-5.1# php bin/console make:entity
 
 обновим базу -
 
-````
+```bash
 php bin/console make:migration
-````
 ```
+```bash
 php bin/console doctrine:migrations:migrate
 ```
 
@@ -855,13 +825,13 @@ In Connection.php line 70:
 
 Use `doctrine:schema:update` with the `--complete` parameter to fully sync the database with your entities.
 
-```php
+```bash
 app/console doctrine:schema:update --force --complete
 ```
 
 or
 
-```php
+```bash
 app/console doctrine:schema:update --dump-sql --complete
 ```
 
@@ -871,8 +841,6 @@ app/console doctrine:schema:update --dump-sql --complete
 
 На выходе имеем примерно следующий вид -
 ```php
-<?php  
-  
 namespace App\Entity;  
   
 use ApiPlatform\Metadata\ApiResource;  
@@ -1150,18 +1118,18 @@ class VirtualRoom
 
 
 Добавляем слежующие поля в класс `VirtualRoomCrudController`
-```php
+```
 FormField::addTab('Налаштування сторінки клієнта','image'),  
 ImageField::new('background','зображення заднього фону')->setUploadDir(uploadDirPath: 'uploads/images/'),  
 ImageField::new('docFree', 'зображенння - лікар вільний')->setUploadDir(uploadDirPath: 'uploads/images/')->hideOnIndex(),  
 ImageField::new('docBusy', 'зображення - лікар зайнятий')->setUploadDir(uploadDirPath: 'uploads/images/')->hideOnIndex(),  
 ImageField::new('wait','зображення - статус зачекайте')->setUploadDir(uploadDirPath: 'uploads/images/')->hideOnIndex(),
 ```
->[!tip]
+
 >После загрузки фото в созданые поля возможна ошибка 
->```
-># You cannot guess the extension as the Mime component is not installed. Try >running "composer require symfony/mime".
->```
+```
+# You cannot guess the extension as the Mime component is not installed. Try >running "composer require symfony/mime".
+```
 >Значит лечим установкой `composer require symfony/mime`
 
 ## Правка отображения image. (ImageField)
@@ -1221,31 +1189,31 @@ public function configureFields(string $pageName): iterable
 
 В вот  в режиме редактирования кабинета пока что изображение не отображается , мы к этому параметру вернемся немного пожее.
 
->[!tip]
+
 >**Информация бралась с источников :**
->
->---
+
+---
 [### **The imageFile image field must define the directory**](https://devbrains.tn/tutorials/the-imagefile-image-field-must-define-the-directory)
->
->---
+
+---
 [### **Upload Image with Vich Bundle**](https://devbrains.tn/tutorials/upload-image-with-vich-bundle)
->
->---
+
+---
 [# Upload Fields](https://symfonycasts.com/screencast/easyadminbundle/upload)
->
->---
+
+---
 [## [Field Types]](https://symfony.com/bundles/EasyAdminBundle/current/fields.html#field-types "Permalink to this headline")
->
->---
+
+---
 [vichuploader symfony 6](https://www.google.com/search?q=vichuploader+symfony+6&sca_esv=559110719)
->
->---
+
+---
 [# How To Upload Files Using API Platform & VichUploader | Symfony](https://www.youtube.com/watch?v=E8hdiWtLKLU&ab_channel=DevBrains)
->
->---
+
+---
 [# Upload d'images avec VichUploader et EasyAdmin 4](https://www.youtube.com/watch?v=SlF9Wxyx0O8&ab_channel=LucasLuk)
->
->---
+
+---
 [# Gagner du temps avec EasyAdmin - Un projet Symfony de A à Z - FreeReads #06](https://www.youtube.com/watch?v=4dmsUalc5Ds&t=1478s&ab_channel=YoanDev)
 
 
@@ -1261,11 +1229,11 @@ public function configureFields(string $pageName): iterable
 
 Выполним добавление полей - 
 
-````
+````bash
 $ php bin/console make:entity
 ````
 
-```
+```bash
  Class name of the entity to create or update (e.g. GentlePuppy):
  > virtualRoom
 
@@ -1311,10 +1279,10 @@ $ php bin/console make:entity
 
 обновим базу -
 
-````
+```bash
 php bin/console make:migration
-````
 ```
+```bash
 php bin/console doctrine:migrations:migrate
 ```
 
@@ -1322,7 +1290,7 @@ php bin/console doctrine:migrations:migrate
 Тутже ругань  по типу - 
 
 
-```
+```bash
 [notice] Migrating up to DoctrineMigrations\Version20230824140423
 [error] Migration DoctrineMigrations\Version20230824140423 failed during Execution. Error: "An exception occurred while executing a query: SQLSTATE[23502]: Not null violation: 7 ERROR:  column "background" of relation "virtual_room" contains null values"
 [critical] Error thrown while running command "doctrine:migrations:migrate". Message: "An exception occurred while executing a query: SQLSTATE[23502]: Not null violation: 7 ERROR:  column "background" of relation "virtual_room" contains null values"
@@ -1372,7 +1340,7 @@ public function up(Schema $schema): void
  //   $this->addSql('ALTER TABLE virtual_room ALTER background SET NOT NULL');  
  //   $this->addSql('ALTER TABLE virtual_room ALTER doc_free SET NOT NULL'); //   $this->addSql('ALTER TABLE virtual_room ALTER doc_busy SET NOT NULL'); //   $this->addSql('ALTER TABLE virtual_room ALTER wait SET NOT NULL');}
 ```
->[!tip]
+
 >Черт его знает правильно или нет , но пока вроде работает .
 
 
@@ -1399,7 +1367,7 @@ public function configureFields(string $pageName): iterable
   
     );  
 }
-
+```
 ## Подымаем RebbitMQ
 
 Пока по простому , для теста подымем  .
@@ -1407,7 +1375,7 @@ public function configureFields(string $pageName): iterable
 Значит в наш старый `**docker-compose.yml**`
 добавим следующий блок - 
 
-```
+```yaml
 services:
   rabbitmq:
     image: rabbitmq:3.10.7-management
@@ -1423,19 +1391,19 @@ services:
 
 Теперь можем авторизоваться в веб-интерфейсе. Логин и пароль по умолчанию — `guest/guest`
 
->[!Tip]
+
 >Источники:
-> [Просто и все на пальцах https://habr.com/](https://habr.com/ru/companies/southbridge/articles/704208/)
->
->---
-> [Поинтересней и немного боли https://hub.docker.com/](https://hub.docker.com/r/bitnami/rabbitmq)
-> 
+ [Просто и все на пальцах https://habr.com/](https://habr.com/ru/companies/southbridge/articles/704208/)
+
+---
+ [Поинтересней и немного боли https://hub.docker.com/](https://hub.docker.com/r/bitnami/rabbitmq)
+
 
 ## Подымаем Ansible Semaphore
 
 Для теста в наш `docker-compose.yml` добавляем :
 
-```
+```yaml
 #Ansible Semaphore: Awesome Open Source Ansible GUI  
   mysql:  
     restart: unless-stopped  
@@ -1495,30 +1463,29 @@ volumes:
 И стучимся на `http://127.0.0.1:3000/` 
 
 Забыл логин и пароль , но вроде это он 
-```
+```bash
 SEMAPHORE_ADMIN_PASSWORD: changeme 
 SEMAPHORE_ADMIN_NAME: admin
 ```
 Если не он, то искать в куске свеже добавленном в  `docker-compose.yml`
 
->[!Tip]
 >[Пример брался с https://www.virtualizationhowto.com/](https://www.virtualizationhowto.com/2023/06/ansible-semaphore-awesome-open-source-ansible-gui/)
->
->---
+
+---
 >[Также можно глянуть https://hub.docker.com/](https://hub.docker.com/r/semaphoreui/semaphore)
->
->---
+
+---
 [Офф сайт https://docs.ansible-semaphore.com/](https://docs.ansible-semaphore.com/administration-guide/installation)
->
->---
->
+
+---
+
 [https://computingforgeeks.com/](https://computingforgeeks.com/run-semaphore-ansible-in-docker/)
->
->---
->
+
+---
+
 [Хард кор на https://github.com/](https://github.com/playniuniu/docker-ansible-semaphore/blob/master/docker-compose.yml)
 
->[!Warning]
+
 >Удалил все образы и пересобрал контейнеры.
 >Желательно проверить .
 
@@ -1526,7 +1493,7 @@ SEMAPHORE_ADMIN_NAME: admin
 
 Для теста в наш `docker-compose.yml` добавляем :↴
 
-```bash
+```yaml
 
 version: '3'
 
@@ -1556,12 +1523,12 @@ services:
 можно поднять с приставкой `-d` то-есть -
 `docker-compose -f ./docker/docker-compose.yml --env-file ./docker/.env up -d`
 
->[!Tip]
+
 >Источники использовал [https://bobcares.com/](https://bobcares.com/blog/install-portainer-docker-compose/)
->---
+---
 >Глянуть [https://earthly.dev/](https://earthly.dev/blog/portainer-for-docker-container-management/)
 >Глянуть [https://www.smarthomebeginner.com/](https://www.smarthomebeginner.com/portainer-docker-compose-guide/)
->---
+---
 
 [[Остановить.Удалить все Docker контейнеры. images]]
 
@@ -1582,7 +1549,7 @@ services:
 ```
 
 Пример настройки `NGINX` и `certbot`
-```
+```yaml
 version: '3'
 
 services:
@@ -1623,17 +1590,17 @@ PermissionError: [Errno 13] Permission denied: '/home/kukarow/PhpstormProjects/W
 `sudo chown -R $(whoami) docker/portainer-data/`
 
 Дальше собираем `build`и запускаем -
-```
+```bash
 docker-compose -f ./docker/docker-compose.yml --env-file ./docker/.env build
 ```
 собрали.
 и запускаем -
 
-```
+```bash
 docker-compose -f ./docker/docker-compose.yml --env-file ./docker/.env up
 ```
 
->[!warning]
+
 >Обратите внимание , что после поднятия контейнеров , у нас упал `aesyAdmin`и`Symfony` Другими словами , у нас отвалилось все что висело на `http://127.0.0.1:888/`
 >Ето дело поправим при настройке `NGINX`
 
@@ -1649,28 +1616,28 @@ Certbot запишет свои файлы `./certbot/www/`, а nginx буде�
 
 Certbot создаст сертификаты в `/etc/letsencrypt/`папке. Тот же принцип, что и для веб-корня: мы будем использовать тома для совместного использования файлов между контейнерами.
 
->[!tip]
+
 >**Лекарство** для ново созданной директории  `docker/certbot/`
->
+
 `sudo chown -R $(whoami) docker/certbot/`
->
+
 >Во избежании проблем для выдачи прав каждому файлу  в директории `docker/certbot/`
->
+
 >Лучше будет -
->
->`sudo chown -R $(whoami) docker/certbot/`
+
+`sudo chown -R $(whoami) docker/certbot/`
 
 Теперь Nginx должен иметь доступ к папке, в которой Certbot создает сертификаты.
 
 Однако сейчас эта папка пуста. Перезапустите Certbot без `--dry-run`флага, чтобы заполнить папку сертификатами:
 
-```
+```bash
 $ docker compose run --rm  certbot certonly --webroot --webroot-path /var/www/certbot/ -d example.org
 ```
 
 Поскольку у нас есть эти сертификаты, осталось настроить `443`nginx.
 
-```
+```yaml
 server {
     listen 80;
     listen [::]:80;
@@ -1701,7 +1668,7 @@ server {
     }
 }
 ```
->[!tip]
+
 >обратите внимание на `server_name example.org www.example.org;`
 >желательно заменить `www.example.org` . Но пока нам нужно протестировать на роботоспособность. 
 
@@ -1725,52 +1692,52 @@ u — означает порт UDP.
 p — выдает список имен процессов, которые открыли сокеты.  
 Чтобы вывести все соединения между сокетами, просто используйте команду ss в ее формате по умолчанию  
 `$ ss`
->[!Warning]
+
 >### Ознакомится 
 >### Приоритет **↴**
 >### [https-using-nginx-certbot-docker/](https://mindsers.blog/post/https-using-nginx-certbot-docker/)
->---
+---
 >### Второстепенно ###↴
 >### [# Setup SSL with Docker, NGINX and Lets Encrypt](https://www.programonaut.com/setup-ssl-with-docker-nginx-and-lets-encrypt/)
->---
+---
 >### [# How to setup SSL with Docker](https://www.linkedin.com/pulse/how-setup-ssl-docker-dhiraj-patra)
->---
->---
+---
+---
 >#### [# Получаем и настраиваем бесплатный SSL сертификат | HTTPS | Let's Encrypt | certbot](https://www.youtube.com/watch?v=0LDkecAwvuQ&ab_channel=Self-hostedGuide%5BbyUnixHost%5D)
->---
+---
 >#### [# Сайт c SSL на Docker Compose за 5 минут // SmmHub #11](https://www.youtube.com/watch?v=HXQ2eLwvoxY)
->---
+---
 >#### [# How To Set Up SSL Certificate For Your Docker-Compose Environment With A .pfx File](https://akintola-lonlon.medium.com/how-to-set-up-ssl-certificate-for-your-docker-compose-environment-with-a-pfx-file-46177442460)
->---
+---
 >#### [# Webapp + Nginx and SSL in Docker Compose](https://medium.com/geekculture/webapp-nginx-and-ssl-in-docker-compose-6d02bdbe8fa0)
->---
+---
 >### Дополнение `ssl tls docker compose github`  ↷
 >### [GitHub k8s](https://github.com/temporalio/docker-compose/blob/main/docker-compose-tls.yml)
->---
+---
 >### [GitHub - Docker](https://github.com/HewlettPackard/squest/blob/master/tls.docker-compose.yml)
->---
+---
 >### [Оптимальная настройка TLS/SSL в Nginx](https://www.youtube.com/watch?v=toR1zWWLmwo&ab_channel=%D0%9F%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%BA%D0%B0%D0%A1%D0%B0%D0%B9%D1%82%D0%BE%D0%B2%3A%3A%D0%9C%D0%B5%D1%82%D0%BE%D0%B4%D0%9B%D0%B0%D0%B1)
 
 ----
 
->[!tip]
+
 >### Symfony 
->---
->---
+---
+---
 >### [# Tutoriel API Platform : Envoi de fichiers](https://www.youtube.com/watch?v=fhdD7K5nZSA&ab_channel=Grafikart.fr)
->---
->---
->
+---
+---
+
 >### [# 17 - Upload et gestion d'images multiples (Symfony 6)](https://www.youtube.com/watch?v=axbLC9PqzfE&ab_channel=NouvelleTechno)
->
->---
->---
+
+---
+---
 
 ## Подымаем Elasticsearch and Kibana
 
 Сначала в  файл .env, чтобы перегруппировать переменные среды. Содержимое этого файла следующее:
 
-```php
+```
 # Version of Elastic products  
 STACK_VERSION=8.4.0# Port to expose Elasticsearch HTTP API to the host  
 ES_PORT=9200# Port to expose Kibana to the host  
@@ -1781,7 +1748,7 @@ KIBANA_PORT=5601
 Поскольку в этом первом руководстве безопасность не активирована для максимального упрощения, нам не нужно будет указывать пароли для наших клиентов.
 
 Теперь перейдем к файлу docker-compose.yml:
-```yml
+```yaml
 version: '3.8'services:  
   elasticsearch:  
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}  
@@ -1827,11 +1794,11 @@ In the [last article](https://medium.com/@mhdabdel151/run-elasticsearch-and-kib
 For those who don’t know what it is, **Docker Compose** is a tool written in Python, that allows you to describe, in a _YAML_ file, several containers as a set of services. It will then allow you to orchestrate your containers, and thus simplify your deployments on different environments.
 
 If you used _Docker for Mac_ or _Docker for Windows_, you already have the latest version of Docker Compose installed in your system. On a Linux workstation, you will have to download it then install it with this command line:
-```
+```bash
 sudo curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose
 ```
 Once installed, you can check the version of Docker Compose using the following command:
-```
+```bash
 docker-compose --version
 ```
 You can learn more about docker-compose [_here_](https://docs.docker.com/compose/).
@@ -1887,17 +1854,17 @@ Here, we are running a _single node_ Elasticsearch version _8.4.0_ cluster w
 Same for Kibana, we specify a name for the container (_kibana_), we fill in the _ELASTICSEARCH_HOSTS_ as an environment variable in order to connect Kibana to Elasticsearch. It is also important to specify the _depends_on_ property in order to start the container only if the Elasticsearch container is launched.
 
 Now, create and launch the Kibana instance and one-node Elasticsearch cluster by running the following command:
-```
+```bash
 docker-compose up -d
 ```
 The first time this command is run it may take a long time depending on your internet connection, as it will download the Elasticsearch and Kibana images specified in our file from the [docker hub](https://hub.docker.com/). You can check that your containers have been created and are running by the command:
-```
+```bash
 docker ps
 ```
 Open a browser when the deployment has started and visit Kibana by going to [http://localhost:5601](http://localhost:5601/), where you may load, test data and communicate with your cluster.
 
 To stop the cluster, nothing could be simpler, run the following command:
-```
+```bash
 docker-compose down
 ```
 
@@ -1923,7 +1890,7 @@ Abdoul-Bagui M.
 + почитать [тут](https://www.bogotobogo.com/DevOps/Docker/Docker_Prometheus_Grafana.php) 
 
 ##### На выходе имеем -
-```yml
+```yaml
 version: "3.8"  
   
 services:  
@@ -2174,12 +2141,12 @@ volumes:
   mysql-workbench-data:
 ```
 
->[!tip]
+
 >Поднялся `prometheus`
 >не поднялись `idsvr` and `grafana`
 >Предположение - забиты порты - перепроверить 
 >и до поднять все остальное .
->---
+---
 >Обратить внимание [curityio/grafana/blob](https://github.com/curityio/grafana/blob/master/docker-compose.yml)
 
 
