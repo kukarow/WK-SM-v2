@@ -1,0 +1,253 @@
+version: "3.8"
+
+services:
+  php-fpm:
+    container_name: php-fpm
+    build:
+      context: ./../
+      dockerfile: ./docker/php-fpm/Dockerfile
+      args:
+        - PUID=${PUID}
+        - PGID=${PGID}
+        #   - INSTALL_XDEBUG=${INSTALL_XDEBUG}
+        #   environment:    #     PHP_IDE_CONFIG: "serverName=Docker"    volumes:
+        #- /var/www/vendor/
+        - ./../:/var/www/
+
+  nginx:
+    container_name: nginx
+    build:
+      context: ./nginx
+    ports:
+      - ${NGINX_HOST_HTTP_PORT}:80
+      #   - ${NGINX_HOST_HTTPS_PORT}:443
+      #   - "80:80"
+      #   - "443:443"
+      #   restart: always
+    volumes:
+      - ..:/var/www:rw
+      #     - ./nginx/conf/:/etc/nginx/conf.d/:rw
+      #     - ./certbot/www:/var/www/certbot/:rw
+      #     - ./certbot/conf/:/etc/nginx/ssl/:rw
+    depends_on:
+      - php-fpm
+  #certbot SSL
+  #  certbot:
+  #     image: certbot/certbot
+  #     container_name: certbot
+  #     volumes:
+  #       - ./certbot/www/:/var/www/certbot/:rw
+  #       - ./certbot/conf/:/etc/letsencrypt/:rw
+  #db
+  postgres:
+    container_name: postgres
+    build:
+      context: ./postgres
+    ports:
+      - ${POSTGRES_PORT}:5432
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - db_data:/var/lib/postgresql/data:rw
+  rabbitmq:
+    image: rabbitmq:3.10.7-management
+    ports:
+      - 15672:15672
+
+  #Ansible Semaphore: Awesome Open Source Ansible GUI
+  mysql:
+    restart: unless-stopped
+    ports:
+      - 3306:3306
+    image: mysql:8.0
+    hostname: mysql
+    volumes:
+      - semaphore-mysql:/var/lib/mysql
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+      MYSQL_DATABASE: semaphore
+      MYSQL_USER: semaphore
+      MYSQL_PASSWORD: 'semaphore'
+
+  semaphore:
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    image: semaphoreui/semaphore:latest
+    environment:
+      SEMAPHORE_DB_USER: semaphore
+      SEMAPHORE_DB_PASS: 'semaphore'
+      SEMAPHORE_DB_HOST: mysql # for postgres, change to: postgres
+      SEMAPHORE_DB_PORT: 3306 # change to 5432 for postgres
+      SEMAPHORE_DB_DIALECT: mysql
+      SEMAPHORE_DB: semaphore
+      SEMAPHORE_PLAYBOOK_PATH: /tmp/semaphore/
+      SEMAPHORE_ADMIN_PASSWORD: changeme
+      SEMAPHORE_ADMIN_NAME: admin
+      SEMAPHORE_ADMIN_EMAIL: admin@example.com
+      SEMAPHORE_ADMIN: admin
+      SEMAPHORE_ACCESS_KEY_ENCRYPTION: gs72mPntFATGJs9qK0pQ0rKtfidlexiMjYCH9gWKhTU=
+      SEMAPHORE_LDAP_ACTIVATED: 'no' # if you wish to use ldap, set to: 'yes'
+      SEMAPHORE_LDAP_HOST: dc01.local.example.com
+      SEMAPHORE_LDAP_PORT: '636'
+      SEMAPHORE_LDAP_NEEDTLS: 'yes'
+      SEMAPHORE_LDAP_DN_BIND: 'uid=bind_user,cn=users,cn=accounts,dc=local,dc=shiftsystems,dc=net'
+      SEMAPHORE_LDAP_PASSWORD: 'ldap_bind_account_password'
+      SEMAPHORE_LDAP_DN_SEARCH: 'dc=local,dc=example,dc=com'
+      SEMAPHORE_LDAP_SEARCH_FILTER: "(u0026(uid=%s)(memberOf=cn=ipausers,cn=groups,cn=accounts,dc=local,dc=example,dc=com))"
+    depends_on:
+      - mysql # for postgres, change to: postgres
+
+  #Elasticsearch and Kibana#  elasticsearch:
+  #    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+  #    container_name: elasticsearch
+  #    volumes:
+  #      - elasticsearch-data:/usr/share/elasticsearch/data
+  #    ports:
+  #      - ${ES_PORT}:9200
+  #    restart: always
+  #    environment:
+  #      - xpack.security.enabled=false
+  #      - discovery.type=single-node
+  #    ulimits:
+  #      memlock:
+  #        soft: -1
+  #        hard: -1
+
+  #  kibana:
+  #      depends_on:
+  #        - elasticsearch
+  #      image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
+  #      container_name: kibana
+  #      volumes:
+  #        - kibana-data:/usr/share/kibana/data
+  #      ports:
+  #        - ${KIBANA_PORT}:5601
+  #      restart: always
+  #      environment:
+  #        - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+
+  #grafana prometheus
+  curity:
+    container_name: idsvr
+    environment:
+      PASSWORD: "Password1"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "Password1"
+    image: curity.azurecr.io/curity/idsvr:latest
+    ports:
+      - "6749:6749"
+      - "4466:4466"
+      - "8443:8443"
+    volumes:
+      - ./config/idsvr/license.json:/opt/idsvr/etc/init/license/license.json
+      - ./config/idsvr/basic_config.xml:/opt/idsvr/etc/init/basic_config.xml
+      - ./config/idsvr/example_config.xml:/opt/idsvr/etc/init/example_config.xml
+    links:
+      - curity-data
+    networks:
+      demonetwork:
+        aliases:
+          - idsvr
+
+  curity-data:
+    container_name: database
+    image: postgres:14.5
+    ports:
+      - 5432:5432
+    volumes:
+      - ./config/postgresql/data:/var/lib/postgresql/data
+      - ./config/postgresql/create-database.sql:/docker-entrypoint-initdb.d/create-database.sql
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "Password1"
+      POSTGRES_DB: "idsvr"
+    networks:
+      demonetwork:
+        aliases:
+          - database
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    links:
+      - curity
+    networks:
+      demonetwork:
+        aliases:
+          - prometheus
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana-oss
+    ports:
+      - "3200:3200"
+    environment:
+      - GF_PATHS_CONFIG=/etc/grafana/custom.ini
+    volumes:
+      - ./config/grafana/custom.ini:/etc/grafana/custom.ini
+      - ./config/grafana/provisioning/:/etc/grafana/provisioning/
+      - type: bind
+        source: ./config/grafana/dashboard.json
+        target: /var/lib/grafana/dashboards/curity/idsvr-dashboard.json
+    links:
+      - prometheus
+    networks:
+      demonetwork:
+        aliases:
+          - grafana
+
+
+
+  #mysql-workbench
+  mysql-workbench:
+    image: lscr.io/linuxserver/mysql-workbench:latest
+    container_name: mysql-workbench
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /path/to/config:/config
+    ports:
+      - 5600:5600
+      - 5601:5601
+    cap_add:
+      - IPC_LOCK
+    restart: unless-stopped
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./portainer-data:/data
+    ports:
+      - 9000:9000
+
+# grafana - prometheus
+networks:
+  demonetwork:
+    name: metrics-demo-net
+
+volumes:
+  db_data:
+  semaphore-mysql: # to use postgres, switch to: semaphore-postgres
+  # volumes Elasticsearch and Kibana
+  #  elasticsearch-data:
+  #    driver: local
+  #  kibana-data:
+  #    driver: local
+
+  #mysql-workbench-data:
+  mysql-workbench-data:
