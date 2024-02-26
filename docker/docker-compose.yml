@@ -222,8 +222,8 @@ volumes:
   db_data:
   semaphore-mysql: # to use postgres, switch to: semaphore-postgres
   # volumes Elasticsearch and Kibana
-  elasticsearch-data:
-    driver: local
-  kibana-data:
-    driver: local
+#  elasticsearch-data:
+#    driver: local
+#  kibana-data:
+#    driver: local
 # k
