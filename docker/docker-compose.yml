@@ -9,9 +9,6 @@ services:
       args:
         - PUID=${PUID}
         - PGID=${PGID}
-        #   - INSTALL_XDEBUG=${INSTALL_XDEBUG}
-        #   environment:    #     PHP_IDE_CONFIG: "serverName=Docker"    volumes:
-        #- /var/www/vendor/
         - ./../:/var/www/
 
   nginx:
@@ -20,24 +17,13 @@ services:
       context: ./nginx
     ports:
       - ${NGINX_HOST_HTTP_PORT}:80
-      #   - ${NGINX_HOST_HTTPS_PORT}:443
-      #   - "80:80"
-      #   - "443:443"
-      #   restart: always
+
     volumes:
       - ..:/var/www:rw
-      #     - ./nginx/conf/:/etc/nginx/conf.d/:rw
-      #     - ./certbot/www:/var/www/certbot/:rw
-      #     - ./certbot/conf/:/etc/nginx/ssl/:rw
+
     depends_on:
       - php-fpm
-  #certbot SSL
-  #  certbot:
-  #     image: certbot/certbot
-  #     container_name: certbot
-  #     volumes:
-  #       - ./certbot/www/:/var/www/certbot/:rw
-  #       - ./certbot/conf/:/etc/letsencrypt/:rw
+
   #db
   postgres:
     container_name: postgres
@@ -74,7 +60,7 @@ services:
   semaphore:
     restart: unless-stopped
     ports:
-      - 3000:3000
+      - 3030:3030
     image: semaphoreui/semaphore:latest
     environment:
       SEMAPHORE_DB_USER: semaphore
@@ -100,154 +86,143 @@ services:
     depends_on:
       - mysql # for postgres, change to: postgres
 
-  #Elasticsearch and Kibana#  elasticsearch:
-  #    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
-  #    container_name: elasticsearch
-  #    volumes:
-  #      - elasticsearch-data:/usr/share/elasticsearch/data
-  #    ports:
-  #      - ${ES_PORT}:9200
-  #    restart: always
-  #    environment:
-  #      - xpack.security.enabled=false
-  #      - discovery.type=single-node
-  #    ulimits:
-  #      memlock:
-  #        soft: -1
-  #        hard: -1
+  #Elasticsearch and Kibana#
+  elasticsearch:
+      image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+      container_name: elasticsearch
+      volumes:
+        - elasticsearch-data:/usr/share/elasticsearch/data
+      ports:
+        - ${ES_PORT}:9200
+     # restart: always
+      environment:
+        - xpack.security.enabled=false
+        - discovery.type=single-node
+      ulimits:
+        memlock:
+          soft: -1
+          hard: -1
 
-  #  kibana:
-  #      depends_on:
-  #        - elasticsearch
-  #      image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
-  #      container_name: kibana
-  #      volumes:
-  #        - kibana-data:/usr/share/kibana/data
-  #      ports:
-  #        - ${KIBANA_PORT}:5601
-  #      restart: always
-  #      environment:
-  #        - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  kibana:
+      depends_on:
+         - elasticsearch
+      image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
+      container_name: kibana
+      volumes:
+        - kibana-data:/usr/share/kibana/data
+      ports:
+        - ${KIBANA_PORT}:5601
+    #  restart: always
+      environment:
+        - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
 
-  #grafana prometheus
-  curity:
-    container_name: idsvr
-    environment:
-      PASSWORD: "Password1"
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "Password1"
-    image: curity.azurecr.io/curity/idsvr:latest
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
     ports:
-      - "6749:6749"
-      - "4466:4466"
-      - "8443:8443"
+      - "9100:9100"
     volumes:
-      - ./config/idsvr/license.json:/opt/idsvr/etc/init/license/license.json
-      - ./config/idsvr/basic_config.xml:/opt/idsvr/etc/init/basic_config.xml
-      - ./config/idsvr/example_config.xml:/opt/idsvr/etc/init/example_config.xml
-    links:
-      - curity-data
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude'
+      - '^/(sys|proc|dev|hoet|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/rum/docker/netns|rootfs/var/lib/docker/aufs)($$|/)'
     networks:
-      demonetwork:
-        aliases:
-          - idsvr
-
-  curity-data:
-    container_name: database
-    image: postgres:14.5
-    ports:
-      - 5432:5432
-    volumes:
-      - ./config/postgresql/data:/var/lib/postgresql/data
-      - ./config/postgresql/create-database.sql:/docker-entrypoint-initdb.d/create-database.sql
-    environment:
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "Password1"
-      POSTGRES_DB: "idsvr"
-    networks:
-      demonetwork:
-        aliases:
-          - database
+      - back-tier
 
   prometheus:
     container_name: prometheus
-    image: prom/prometheus
+    image: prom/prometheus:v2.28.1
     ports:
       - "9090:9090"
     volumes:
       - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    links:
-      - curity
+      - prom-data:/prometheus
+      - prom-configs:/etc/prometheus
     networks:
-      demonetwork:
-        aliases:
-          - prometheus
+      - back-tier
 
   grafana:
+    image: grafana/grafana:8.0.6-ubuntu
     container_name: grafana
-    image: grafana/grafana-oss
     ports:
-      - "3200:3200"
-    environment:
-      - GF_PATHS_CONFIG=/etc/grafana/custom.ini
-    volumes:
-      - ./config/grafana/custom.ini:/etc/grafana/custom.ini
-      - ./config/grafana/provisioning/:/etc/grafana/provisioning/
-      - type: bind
-        source: ./config/grafana/dashboard.json
-        target: /var/lib/grafana/dashboards/curity/idsvr-dashboard.json
-    links:
-      - prometheus
+     - "3000:3000"
+  #  volumes:
+  #   - $DOCKERDIR/appdata/grafana:/var/lib/grafana
+  #   - grafana-data:/var/lib/grafana
+  #   - grafana-configs:/etc/grafana
     networks:
-      demonetwork:
-        aliases:
-          - grafana
-
-
-
-  #mysql-workbench
-  mysql-workbench:
-    image: lscr.io/linuxserver/mysql-workbench:latest
-    container_name: mysql-workbench
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC
-    volumes:
-      - /path/to/config:/config
-    ports:
-      - 5600:5600
-      - 5601:5601
-    cap_add:
-      - IPC_LOCK
-    restart: unless-stopped
+      - back-tier
 
   portainer:
-    image: portainer/portainer-ce:latest
     container_name: portainer
+    image: portainer/portainer-ce:latest
     restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./portainer-data:/data
+    networks:
+      - default
+    command: -H unix:///var/run/docker.sock
     ports:
-      - 9000:9000
-
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - $DOCKERDIRDOD/appdata/portainer/data:/data
+    environment:
+      - TZ=$TZ
+##pgAdmin4
+  db:
+    image: postgres
+    container_name: local_pgdb
+    restart: always
+    ports:
+      - "54320:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - local_pgdata:/var/lib/postgresql/data
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: raj@nola.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+  lenses:
+    image: lensesio/lenses:5.0
+    environment:
+      LENSES_PORT: 9991
+      LENSES_SECURITY_USER: admin
+      LENSES_SECURITY_PASSWORD: 10242048
+    ports:
+      - 9991:9991
+      - 9102:9102
 # grafana - prometheus
 networks:
-  demonetwork:
-    name: metrics-demo-net
+  back-tier:
 
 volumes:
+  #pgadmin
+  local_pgdata:
+  pgadmin-data:
+
+  # grafana node-exporter prometheus
+  grafana-logs:
+  grafana-data:
+  grafana-configs:
+  prom-data:
+  prom-configs:
+    #----
   db_data:
   semaphore-mysql: # to use postgres, switch to: semaphore-postgres
   # volumes Elasticsearch and Kibana
-  #  elasticsearch-data:
-  #    driver: local
-  #  kibana-data:
-  #    driver: local
-
-  #mysql-workbench-data:
-  mysql-workbench-data:
+  elasticsearch-data:
+    driver: local
+  kibana-data:
+    driver: local
