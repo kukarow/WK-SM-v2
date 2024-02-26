@@ -194,15 +194,15 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin
     volumes:
       - pgadmin-data:/var/lib/pgadmin
-  lenses:
-    image: lensesio/lenses:5.0
-    environment:
-      LENSES_PORT: 9991
-      LENSES_SECURITY_USER: admin
-      LENSES_SECURITY_PASSWORD: 10242048
-    ports:
-      - 9991:9991
-      - 9102:9102
+ # lenses:
+ #   image: lensesio/lenses:5.0
+ #   environment:
+ #     LENSES_PORT: 9991
+ #     LENSES_SECURITY_USER: admin
+ #     LENSES_SECURITY_PASSWORD: 10242048
+ #   ports:
+ #     - 9991:9991
+ #     - 9102:9102
 # grafana - prometheus
 networks:
   back-tier:
