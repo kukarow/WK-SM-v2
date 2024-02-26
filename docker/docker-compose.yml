@@ -1,0 +1,229 @@
+version: "3.8"
+
+services:
+  php-fpm:
+    container_name: php-fpm
+    build:
+      context: ./../
+      dockerfile: ./docker/php-fpm/Dockerfile
+      args:
+        - PUID=${PUID}
+        - PGID=${PGID}
+        - ./../:/var/www/
+
+  nginx:
+    container_name: nginx
+    build:
+      context: ./nginx
+    ports:
+      - ${NGINX_HOST_HTTP_PORT}:80
+
+    volumes:
+      - ..:/var/www:rw
+
+    depends_on:
+      - php-fpm
+
+  #db
+  postgres:
+    container_name: postgres
+    build:
+      context: ./postgres
+    ports:
+      - ${POSTGRES_PORT}:5432
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - db_data:/var/lib/postgresql/data:rw
+  rabbitmq:
+    image: rabbitmq:3.10.7-management
+    ports:
+      - 15672:15672
+
+  #Ansible Semaphore: Awesome Open Source Ansible GUI
+  mysql:
+    restart: unless-stopped
+    ports:
+      - 3306:3306
+    image: mysql:8.0
+    hostname: mysql
+    volumes:
+      - semaphore-mysql:/var/lib/mysql
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+      MYSQL_DATABASE: semaphore
+      MYSQL_USER: semaphore
+      MYSQL_PASSWORD: 'semaphore'
+
+  semaphore:
+    restart: unless-stopped
+    ports:
+      - 3030:3030
+    image: semaphoreui/semaphore:latest
+    environment:
+      SEMAPHORE_DB_USER: semaphore
+      SEMAPHORE_DB_PASS: 'semaphore'
+      SEMAPHORE_DB_HOST: mysql # for postgres, change to: postgres
+      SEMAPHORE_DB_PORT: 3306 # change to 5432 for postgres
+      SEMAPHORE_DB_DIALECT: mysql
+      SEMAPHORE_DB: semaphore
+      SEMAPHORE_PLAYBOOK_PATH: /tmp/semaphore/
+      SEMAPHORE_ADMIN_PASSWORD: changeme
+      SEMAPHORE_ADMIN_NAME: admin
+      SEMAPHORE_ADMIN_EMAIL: admin@example.com
+      SEMAPHORE_ADMIN: admin
+      SEMAPHORE_ACCESS_KEY_ENCRYPTION: gs72mPntFATGJs9qK0pQ0rKtfidlexiMjYCH9gWKhTU=
+      SEMAPHORE_LDAP_ACTIVATED: 'no' # if you wish to use ldap, set to: 'yes'
+      SEMAPHORE_LDAP_HOST: dc01.local.example.com
+      SEMAPHORE_LDAP_PORT: '636'
+      SEMAPHORE_LDAP_NEEDTLS: 'yes'
+      SEMAPHORE_LDAP_DN_BIND: 'uid=bind_user,cn=users,cn=accounts,dc=local,dc=shiftsystems,dc=net'
+      SEMAPHORE_LDAP_PASSWORD: 'ldap_bind_account_password'
+      SEMAPHORE_LDAP_DN_SEARCH: 'dc=local,dc=example,dc=com'
+      SEMAPHORE_LDAP_SEARCH_FILTER: "(u0026(uid=%s)(memberOf=cn=ipausers,cn=groups,cn=accounts,dc=local,dc=example,dc=com))"
+    depends_on:
+      - mysql # for postgres, change to: postgres
+
+  #Elasticsearch and Kibana#
+  elasticsearch:
+      image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+      container_name: elasticsearch
+      volumes:
+        - elasticsearch-data:/usr/share/elasticsearch/data
+      ports:
+        - ${ES_PORT}:9200
+     # restart: always
+      environment:
+        - xpack.security.enabled=false
+        - discovery.type=single-node
+      ulimits:
+        memlock:
+          soft: -1
+          hard: -1
+
+  kibana:
+      depends_on:
+         - elasticsearch
+      image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
+      container_name: kibana
+      volumes:
+        - kibana-data:/usr/share/kibana/data
+      ports:
+        - ${KIBANA_PORT}:5601
+    #  restart: always
+      environment:
+        - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude'
+      - '^/(sys|proc|dev|hoet|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/rum/docker/netns|rootfs/var/lib/docker/aufs)($$|/)'
+    networks:
+      - back-tier
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v2.28.1
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prom-data:/prometheus
+      - prom-configs:/etc/prometheus
+    networks:
+      - back-tier
+
+  grafana:
+    image: grafana/grafana:8.0.6-ubuntu
+    container_name: grafana
+    ports:
+     - "3000:3000"
+  #  volumes:
+  #   - $DOCKERDIR/appdata/grafana:/var/lib/grafana
+  #   - grafana-data:/var/lib/grafana
+  #   - grafana-configs:/etc/grafana
+    networks:
+      - back-tier
+
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce:latest
+    restart: unless-stopped
+    networks:
+      - default
+    command: -H unix:///var/run/docker.sock
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - $DOCKERDIRDOD/appdata/portainer/data:/data
+    environment:
+      - TZ=$TZ
+##pgAdmin4
+  db:
+    image: postgres
+    container_name: local_pgdb
+    restart: always
+    ports:
+      - "54320:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - local_pgdata:/var/lib/postgresql/data
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: raj@nola.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+ # lenses:
+ #   image: lensesio/lenses:5.0
+ #   environment:
+ #     LENSES_PORT: 9991
+ #     LENSES_SECURITY_USER: admin
+ #     LENSES_SECURITY_PASSWORD: 10242048
+ #   ports:
+ #     - 9991:9991
+ #     - 9102:9102
+# grafana - prometheus
+networks:
+  back-tier:
+
+volumes:
+  #pgadmin
+  local_pgdata:
+  pgadmin-data:
+
+  # grafana node-exporter prometheus
+  grafana-logs:
+  grafana-data:
+  grafana-configs:
+  prom-data:
+  prom-configs:
+    #----
+  db_data:
+  semaphore-mysql: # to use postgres, switch to: semaphore-postgres
+  # volumes Elasticsearch and Kibana
+  elasticsearch-data:
+    driver: local
+  kibana-data:
+    driver: local
+# k
