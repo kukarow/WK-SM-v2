@@ -1,7 +1,8 @@
-  global:
-    scrape_interval: 15s
-    evaluation_interval: 15s
-  scrape_configs:
-    - job_name: curity
-      static_configs:
-      - targets: ['idsvr:4466']
+global:
+  scrape_interval: 10s
+  external_labels:
+    monitor: 'lambda-monitor'
+scrape_configs:
+  - job_name: node
+    static_configs:
+      - targets: ['core2-sb-mongo-lt-n1:9100', 'core2-sb-mongo-lt-n2:9100', 'core2-sb-mongo-lt-n3:9100','core2-prototype-mongodb-bs-lt:9100']
