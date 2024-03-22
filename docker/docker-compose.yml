@@ -1,5 +1,15 @@
 version: "3.8"
-
+networks:
+  back-tier:
+#     driver: bridge
+     ipam:
+       config:
+         - subnet: 110.20.0.0/24
+#networks:
+#  mynetwork:
+#    ipam:
+#      config:
+#        - subnet: 172.20.0.0/24
 services:
   php-fpm:
     container_name: php-fpm
@@ -10,20 +20,22 @@ services:
         - PUID=${PUID}
         - PGID=${PGID}
         - ./../:/var/www/
-
+    networks:
+      back-tier:
+        ipv4_address: 110.20.0.60
   nginx:
     container_name: nginx
     build:
       context: ./nginx
     ports:
       - ${NGINX_HOST_HTTP_PORT}:80
-
+    networks:
+      back-tier:
+        ipv4_address: 110.20.0.70
     volumes:
       - ..:/var/www:rw
-
     depends_on:
       - php-fpm
-
   #db
   postgres:
     container_name: postgres
@@ -37,14 +49,21 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - db_data:/var/lib/postgresql/data:rw
+    networks:
+      back-tier:
+        ipv4_address: 110.20.0.2
+
   rabbitmq:
     image: rabbitmq:3.10.7-management
     ports:
       - 15672:15672
+    networks:
+      back-tier:
+        ipv4_address: 110.20.0.90
 
   #Ansible Semaphore: Awesome Open Source Ansible GUI
   mysql:
-    restart: unless-stopped
+#    restart: unless-stopped
     ports:
       - 3306:3306
     image: mysql:8.0
@@ -56,9 +75,11 @@ services:
       MYSQL_DATABASE: semaphore
       MYSQL_USER: semaphore
       MYSQL_PASSWORD: 'semaphore'
-
+    networks:
+      back-tier:
+        ipv4_address: 110.20.0.210
   semaphore:
-    restart: unless-stopped
+#    restart: unless-stopped
     ports:
       - 3030:3030
     image: semaphoreui/semaphore:latest
@@ -85,7 +106,9 @@ services:
       SEMAPHORE_LDAP_SEARCH_FILTER: "(u0026(uid=%s)(memberOf=cn=ipausers,cn=groups,cn=accounts,dc=local,dc=example,dc=com))"
     depends_on:
       - mysql # for postgres, change to: postgres
-
+    networks:
+      back-tier:
+        ipv4_address: 110.20.0.220
   #Elasticsearch and Kibana#
 #  elasticsearch:
 #      image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
@@ -131,7 +154,8 @@ services:
       - '--collector.filesystem.mount-points-exclude'
       - '^/(sys|proc|dev|hoet|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/rum/docker/netns|rootfs/var/lib/docker/aufs)($$|/)'
     networks:
-      - back-tier
+      back-tier:
+        ipv4_address: 110.20.0.230
 
   prometheus:
     container_name: prometheus
@@ -143,7 +167,8 @@ services:
       - prom-data:/prometheus
       - prom-configs:/etc/prometheus
     networks:
-      - back-tier
+      back-tier:
+        ipv4_address: 110.20.0.240
 
   grafana:
     image: grafana/grafana:8.0.6-ubuntu
@@ -155,14 +180,13 @@ services:
   #   - grafana-data:/var/lib/grafana
   #   - grafana-configs:/etc/grafana
     networks:
-      - back-tier
+      back-tier:
+        ipv4_address: 110.20.0.250
 
   portainer:
     container_name: portainer
     image: portainer/portainer-ce:latest
-    restart: unless-stopped
-    networks:
-      - default
+#    restart: unless-stopped
     command: -H unix:///var/run/docker.sock
     ports:
       - "9000:9000"
@@ -171,24 +195,18 @@ services:
       - $DOCKERDIRDOD/appdata/portainer/data:/data
     environment:
       - TZ=$TZ
-##pgAdmin4
-  db:
-    image: postgres
-    container_name: local_pgdb
-    restart: always
-    ports:
-      - "54320:5432"
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: admin
-    volumes:
-      - local_pgdata:/var/lib/postgresql/data
+    networks:
+      back-tier:
+        ipv4_address: 110.20.1.160
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin4_container
    # restart: always
     ports:
       - "5050:80"
+    networks:
+      back-tier:
+        ipv4_address: 110.20.1.170
     environment:
       PGADMIN_DEFAULT_EMAIL: raj@nola.com
       PGADMIN_DEFAULT_PASSWORD: admin
@@ -204,9 +222,6 @@ services:
  #     - 9991:9991
  #     - 9102:9102
 # grafana - prometheus
-networks:
-  back-tier:
-
 volumes:
   #pgadmin
   local_pgdata:
