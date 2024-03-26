@@ -1,6 +1,7 @@
 version: "3.8"
 networks:
   back-tier:
+
 #networks:
 #  mynetwork:
 #    ipam:
@@ -59,7 +60,7 @@ services:
   semaphore:
 #    restart: unless-stopped
     ports:
-      - 5434:54322
+      - ${SEMAPHORE_PORT}:3030
     image: semaphoreui/semaphore:latest
     environment:
       SEMAPHORE_DB_USER: ${POSTGRES_USER}
@@ -69,10 +70,10 @@ services:
       SEMAPHORE_DB_DIALECT: postgres
       SEMAPHORE_DB: semaphore
       SEMAPHORE_PLAYBOOK_PATH: /tmp/semaphore/
-      SEMAPHORE_ADMIN_PASSWORD: changeme
-      SEMAPHORE_ADMIN_NAME: admin
-      SEMAPHORE_ADMIN_EMAIL: admin@example.com
-      SEMAPHORE_ADMIN: admin
+      SEMAPHORE_ADMIN_PASSWORD: ${SEMAPHORE_ADMIN_PASSWORD}
+      SEMAPHORE_ADMIN_NAME: ${SEMAPHORE_ADMIN_NAME}
+      SEMAPHORE_ADMIN_EMAIL: ${SEMAPHORE_ADMIN_EMAIL}
+      SEMAPHORE_ADMIN: ${SEMAPHORE_ADMIN}
       SEMAPHORE_ACCESS_KEY_ENCRYPTION: gs72mPntFATGJs9qK0pQ0rKtfidlexiMjYCH9gWKhTU=
       SEMAPHORE_LDAP_ACTIVATED: 'no' # if you wish to use ldap, set to: 'yes'
       SEMAPHORE_LDAP_HOST: dc01.local.example.com
@@ -139,7 +140,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - $DOCKERDIRDOD/appdata/portainer/data:/data
     environment:
-      - TZ=$TZ
+     # - TZ=$TZ
+         TZ: ${TZ}
+     #   ORTAINER_DEFAULT_ADMIN: ${PORTAINER_DEFAULT_ADMIN}
+     #   PORTAINER_DEFAULT_PASSWORD: ${PORTAINER_DEFAULT_PASSWORD}
     networks:
      - back-tier
 #        ipv4_address: 110.20.1.160
@@ -148,10 +152,10 @@ services:
     container_name: pgadmin4_container
    # restart: always
     ports:
-      - "5050:80"
+      - ${PGADMIN_PORT}:80
     environment:
-      PGADMIN_DEFAULT_EMAIL: raj@nola.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     volumes:
       - pgadmin-data:/var/lib/pgadmin
     networks:
@@ -169,4 +173,4 @@ volumes:
   prom-data:
   prom-configs:
   db_data:
-  semaphore-postgres: # to use postgres, switch to: semaphore-postgres
+  semaphore-postgres:
