@@ -3,10 +3,10 @@ networks:
   back-tier:
 
 #networks:
-#  mynetwork:
-#    ipam:
-#      config:
-#        - subnet: 172.20.0.0/24
+  mynetwork:
+    ipam:
+      config:
+        - subnet: 171.20.0.0/24
 services:
   php-fpm:
     container_name: php-fpm
@@ -103,8 +103,9 @@ services:
       - '--collector.filesystem.mount-points-exclude'
       - '^/(sys|proc|dev|hoet|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/rum/docker/netns|rootfs/var/lib/docker/aufs)($$|/)'
     networks:
-     - back-tier
-#        ipv4_address: 110.20.0.230
+#     - back-tier
+        mynetwork:
+          ipv4_address: 171.20.0.230
   prometheus:
     container_name: prometheus
     image: prom/prometheus:v2.28.1
@@ -115,8 +116,9 @@ services:
       - prom-data:/prometheus
       - prom-configs:/etc/prometheus
     networks:
-     - back-tier
-#        ipv4_address: 110.20.0.240
+ #    - back-tier
+       mynetwork:
+         ipv4_address: 171.20.0.231
   grafana:
     image: grafana/grafana:8.0.6-ubuntu
     container_name: grafana
@@ -127,8 +129,9 @@ services:
   #   - grafana-data:/var/lib/grafana
   #   - grafana-configs:/etc/grafana
     networks:
-     - back-tier
-#        ipv4_address: 110.20.0.250
+#     - back-tier
+       mynetwork:
+         ipv4_address: 171.20.0.232
   portainer:
     container_name: portainer
     image: portainer/portainer-ce:latest
@@ -161,6 +164,25 @@ services:
     networks:
      - back-tier
 #        ipv4_address: 110.20.1.170
+# ftpd_storage:
+  ftpd_storage:
+    image: stilliard/pure-ftpd
+    container_name: pure-ftpd_storage
+    ports:
+      - "21:21"
+      - "30000:30009"
+    # - "30000-30009:30000-30009"
+    volumes: # remember to replace /folder_on_disk/ with the path to where you want to store the files on the host machine
+      - ./storage/public:/app
+    environment:
+      PUBLICHOST: "localhost"
+      FTP_USER_NAME: app
+      FTP_USER_PASS: 110.220.0.20
+      FTP_USER_HOME: /app
+    networks:
+      mynetwork:
+        ipv4_address: 171.20.0.233
+#    restart: always
 # grafana - prometheus
 volumes:
   #pgadmin
